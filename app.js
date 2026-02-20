@@ -1,10 +1,10 @@
 const express = require('express')
 const app = express()
 
-throw new Error("ROLLBACK TEST ERROR")
-
 app.get('/', (req,res)=>{
-    res.send("This should never show")
+    res.send("Node App Running Successfully hiii hell")
 })
 
-app.listen(3000)
+app.listen(3000, () => {
+    console.log("Server running on port 3000")
+})

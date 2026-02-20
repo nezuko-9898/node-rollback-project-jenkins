@@ -24,31 +24,29 @@ pipeline {
 
         stage('Create Release') {
             steps {
-                sh """
+                sh '''
                 mkdir -p build
                 cp -r * build/
-                """
+                '''
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    sh """
-                    rsync -avz build/ $SERVER:$BASE_DIR/releases/$RELEASE
-                    """
-                }
+                sh """
+                rsync -avz build/ ${SERVER}:${BASE_DIR}/releases/${RELEASE}
+                """
             }
         }
 
         stage('Update Current Symlink') {
             steps {
                 sh """
-                ssh $SERVER '
-                    ln -sfn $BASE_DIR/releases/$RELEASE $BASE_DIR/current
-                    cd $BASE_DIR/current
+                ssh ${SERVER} "
+                    ln -sfn ${BASE_DIR}/releases/${RELEASE} ${BASE_DIR}/current
+                    cd ${BASE_DIR}/current
                     pm2 startOrRestart ecosystem.config.js
-                '
+                "
                 """
             }
         }
@@ -62,16 +60,16 @@ pipeline {
             echo "Deployment failed — rolling back"
 
             sh """
-            ssh $SERVER '
-                cd $BASE_DIR/releases
-                PREVIOUS=$(ls -t | sed -n 2p)
+            ssh ${SERVER} "
+                cd ${BASE_DIR}/releases
+                PREVIOUS=\\\$(ls -t | sed -n 2p)
 
-                if [ ! -z "$PREVIOUS" ]; then
-                    ln -sfn $BASE_DIR/releases/$PREVIOUS $BASE_DIR/current
-                    cd $BASE_DIR/current
+                if [ ! -z '\\\$PREVIOUS' ]; then
+                    ln -sfn ${BASE_DIR}/releases/\\\$PREVIOUS ${BASE_DIR}/current
+                    cd ${BASE_DIR}/current
                     pm2 restart ecosystem.config.js
                 fi
-            '
+            "
             """
 
         }

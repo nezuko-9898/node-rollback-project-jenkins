@@ -27,7 +27,7 @@ pipeline {
                 sh '''
                 rm -rf build
                 mkdir build
-                rsync -av --exclude=build ./ build/
+                 rsync -av --exclude=build --exclude=node_modules --exclude=.git ./ build/
                 '''
             }
         }
@@ -58,7 +58,7 @@ pipeline {
                 sh """
                 sleep 5
                 ssh ${SERVER} "
-                    curl -f http://localhost:3000 || exit 1
+                    curl -f http://3.109.122.40:3000 || exit 1
                 "
                 """
             }

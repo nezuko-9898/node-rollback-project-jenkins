@@ -25,8 +25,9 @@ pipeline {
         stage('Create Release') {
             steps {
                 sh '''
-                mkdir -p build
-                cp -r * build/
+                rm -rf build
+                mkdir build
+                rsync -av --exclude=build ./ build/
                 '''
             }
         }
@@ -61,13 +62,13 @@ pipeline {
 
             sh """
             ssh ${SERVER} "
-                cd ${BASE_DIR}/releases
+                cd ${BASE_DIR}/releases || exit 0
                 PREVIOUS=\\\$(ls -t | sed -n 2p)
 
-                if [ ! -z '\\\$PREVIOUS' ]; then
+                if [ ! -z \\"\\\$PREVIOUS\\" ]; then
                     ln -sfn ${BASE_DIR}/releases/\\\$PREVIOUS ${BASE_DIR}/current
                     cd ${BASE_DIR}/current
-                    pm2 restart ecosystem.config.js
+                    pm2 startOrRestart ecosystem.config.js
                 fi
             "
             """

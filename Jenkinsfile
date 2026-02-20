@@ -28,7 +28,7 @@ pipeline {
                 sh '''
                 rm -rf build
                 mkdir build
-                rsync -av --exclude=build --exclude=node_modules --exclude=.git ./ build/
+                rsync -av --exclude=build --exclude=.git ./ build/
                 '''
             }
         }

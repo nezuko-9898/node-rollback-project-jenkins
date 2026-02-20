@@ -3,9 +3,9 @@ pipeline {
     agent any
 
     environment {
-        SERVER = "ubuntu@13.201.223.177"
+        SERVER   = "ubuntu@13.201.223.177"
         BASE_DIR = "/var/www/node-rollback-app"
-        RELEASE = "release-${BUILD_NUMBER}"
+        RELEASE  = "release-${BUILD_NUMBER}"
         APP_NAME = "node-rollback-project"
     }
 
@@ -49,6 +49,8 @@ pipeline {
                     ln -sfn ${BASE_DIR}/releases/${RELEASE} ${BASE_DIR}/current
                     cd ${BASE_DIR}/current
 
+                    npm install --production
+
                     pm2 delete ${APP_NAME} || true
                     pm2 start ecosystem.config.js
                 "
@@ -70,6 +72,30 @@ pipeline {
 
     post {
 
+        success {
+
+            echo "Deployment successful — deleting old releases"
+
+            sh """
+            ssh ${SERVER} "
+
+                cd ${BASE_DIR}/releases || exit 0
+
+                # Get current active release
+                CURRENT=\\\$(basename \\\$(readlink ${BASE_DIR}/current))
+
+                echo Current active release: \\\$CURRENT
+
+                # Delete all releases except current
+                for DIR in *; do
+                    if [ \\"\\\$DIR\\" != \\"\\\$CURRENT\\" ]; then
+                        rm -rf \\\$DIR
+                    fi
+                done
+            "
+            """
+        }
+
         failure {
 
             echo "Deployment failed — rolling back"
@@ -87,6 +113,9 @@ pipeline {
                     pm2 delete ${APP_NAME} || true
                     pm2 start ecosystem.config.js
                 fi
+
+                # delete failed release
+                rm -rf ${BASE_DIR}/releases/${RELEASE}
             "
             """
         }

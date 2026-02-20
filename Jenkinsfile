@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     environment {
-        SERVER = "ubuntu@3.110.223.236"
+        SERVER = "ubuntu@3.109.122.40"
         BASE_DIR = "/var/www/node-rollback-app"
         RELEASE = "release-${BUILD_NUMBER}"
     }

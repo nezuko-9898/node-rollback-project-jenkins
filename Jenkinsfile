@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     environment {
-        SERVER = "ubuntu@3.109.122.40"
+        SERVER = "ubuntu@13.201.223.177"
         BASE_DIR = "/var/www/node-rollback-app"
         RELEASE = "release-${BUILD_NUMBER}"
         APP_NAME = "node-rollback-project"
@@ -61,7 +61,7 @@ pipeline {
                 sh """
                 sleep 5
                 ssh ${SERVER} "
-                    curl -f http://3.109.122.40:3000 || exit 1
+                    curl -f http://13.201.223.177:3000 || exit 1
                 "
                 """
             }

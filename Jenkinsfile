@@ -52,6 +52,18 @@ pipeline {
             }
         }
 
+        // ✅ NEW HEALTH CHECK STAGE
+        stage('Health Check') {
+            steps {
+                sh """
+                sleep 5
+                ssh ${SERVER} "
+                    curl -f http://localhost:3000 || exit 1
+                "
+                """
+            }
+        }
+
     }
 
     post {
@@ -72,7 +84,6 @@ pipeline {
                 fi
             "
             """
-
         }
     }
 }

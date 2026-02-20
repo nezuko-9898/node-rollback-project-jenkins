@@ -6,6 +6,7 @@ pipeline {
         SERVER = "ubuntu@3.109.122.40"
         BASE_DIR = "/var/www/node-rollback-app"
         RELEASE = "release-${BUILD_NUMBER}"
+        APP_NAME = "node-rollback-project"
     }
 
     stages {
@@ -27,7 +28,7 @@ pipeline {
                 sh '''
                 rm -rf build
                 mkdir build
-                 rsync -av --exclude=build --exclude=node_modules --exclude=.git ./ build/
+                rsync -av --exclude=build --exclude=node_modules --exclude=.git ./ build/
                 '''
             }
         }
@@ -35,24 +36,26 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh """
+                ssh ${SERVER} "mkdir -p ${BASE_DIR}/releases/${RELEASE}"
                 rsync -avz build/ ${SERVER}:${BASE_DIR}/releases/${RELEASE}
                 """
             }
         }
 
-        stage('Update Current Symlink') {
+        stage('Start New Release') {
             steps {
                 sh """
                 ssh ${SERVER} "
                     ln -sfn ${BASE_DIR}/releases/${RELEASE} ${BASE_DIR}/current
                     cd ${BASE_DIR}/current
-                    pm2 startOrRestart ecosystem.config.js
+
+                    pm2 delete ${APP_NAME} || true
+                    pm2 start ecosystem.config.js
                 "
                 """
             }
         }
 
-        // ✅ NEW HEALTH CHECK STAGE
         stage('Health Check') {
             steps {
                 sh """
@@ -63,7 +66,6 @@ pipeline {
                 """
             }
         }
-
     }
 
     post {
@@ -75,12 +77,15 @@ pipeline {
             sh """
             ssh ${SERVER} "
                 cd ${BASE_DIR}/releases || exit 0
+
                 PREVIOUS=\\\$(ls -t | sed -n 2p)
 
                 if [ ! -z \\"\\\$PREVIOUS\\" ]; then
                     ln -sfn ${BASE_DIR}/releases/\\\$PREVIOUS ${BASE_DIR}/current
                     cd ${BASE_DIR}/current
-                    pm2 startOrRestart ecosystem.config.js
+
+                    pm2 delete ${APP_NAME} || true
+                    pm2 start ecosystem.config.js
                 fi
             "
             """

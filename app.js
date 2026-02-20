@@ -1,10 +1,11 @@
 const express = require('express')
 const app = express()
 
+// 🔥 Intentional crash
+throw new Error("ROLLBACK TEST ERROR")
+
 app.get('/', (req,res)=>{
-    res.send("Node App Running Successfully hiii hell")
+    res.send("This should never show")
 })
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000")
-})
+app.listen(3000)

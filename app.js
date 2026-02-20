@@ -5,9 +5,8 @@ const app = express()
 throw new Error("TEST ERROR - RELEASE 7 FAILED")
 
 app.get('/', (req,res)=>{
-    res.send("Node App Running Successfully")
+    res.send("Node App Running Successfully ok not problem")
 })
 
-app.listen(3000, ()=>{
-    console.log("Server running on port 3000")
+
 })
